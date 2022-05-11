@@ -7,18 +7,13 @@
 
 import SwiftUI
 
-//private enum Emojis {
-//    static let vehicles: [String] = ["🚗", "🏎", "🚙", "🚕", "🚎", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚", "🚛", "🚜", "🛴", "🚲", "🛵", "🏍", "🛺", "🚀", "⛴", "🚢", "🛳", "✈️"]
-//    static let food: [String] = ["🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑"]
-//    static let sport: [String] = ["⚽️", "🏀", "🏈", "⚾️", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱"]
-//}
-
 struct ContentView: View {
     @ObservedObject var viewModel: EmojiMemoryGame
      
     var body: some View {
         VStack {
-            Text("Memorize!").font(.largeTitle)
+            Text("Memorize! \(viewModel.themeName)").font(.largeTitle)
+            Text("Score: \(viewModel.score)").font(.title2)
             ScrollView {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 65))]) {
                     ForEach(viewModel.cards) { card in
@@ -30,7 +25,18 @@ struct ContentView: View {
                     }
                 }
             }
-            .foregroundColor(.pink)
+            .foregroundColor(viewModel.themeColor)
+            Spacer()
+            Button {
+                viewModel.newGameSelected()
+            } label: {
+                Text("New Game")
+                    .frame(width: 100, height: 100)
+                    .foregroundColor(Color.white)
+                    .background(viewModel.themeColor)
+                    .clipShape(Circle())
+            }
+
         }
         .padding(.horizontal)
     }
@@ -56,7 +62,7 @@ struct CardView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        let game = EmojiMemoryGame()
+        let game = EmojiMemoryGame(theme: .vehicles)
         ContentView(viewModel: game)
             .previewDevice(PreviewDevice(rawValue: "iPhone 13"))
             .previewDisplayName("iPhone 13")

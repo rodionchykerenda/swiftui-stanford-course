@@ -9,6 +9,7 @@ import Foundation
 
 struct MemoryGame<CardContent: Equatable> {
     private(set) var cards: [Card]
+    private(set) var score: Int = 0
     private var indexOfFacedUpCard: Int?
     
     init(numberOfPairsOfCards: Int, createCardContent: (Int) -> CardContent) {
@@ -19,26 +20,34 @@ struct MemoryGame<CardContent: Equatable> {
             cards.append(Card(content: content))
             cards.append(Card(content: content))
         }
+        
+        cards.shuffle()
     }
     
     mutating func choose(_ card: Card) {
-            if let chosenIndex = cards.firstIndex(where: { $0.id == card.id }),
-                !cards[chosenIndex].isFaceUp {
+        if let chosenIndex = cards.firstIndex(where: { $0.id == card.id }),
+           !cards[chosenIndex].isFaceUp,
+           !cards[chosenIndex].isMatched {
             if let potentialMatchCardIndex = indexOfFacedUpCard {
                 if cards[chosenIndex].content == cards[potentialMatchCardIndex].content {
                     cards[chosenIndex].isMatched = true
                     cards[potentialMatchCardIndex].isMatched = true
+                    score += 2
+                } else {
+                    score -= 1
                 }
                 
                 indexOfFacedUpCard = nil
             } else {
                 for index in cards.indices {
-                    cards[index].isFaceUp = false
+                    if !cards[index].isMatched {
+                        cards[index].isFaceUp = false
+                    }
                 }
+                
+                indexOfFacedUpCard = chosenIndex
             }
             cards[chosenIndex].isFaceUp.toggle()
-        } else {
-            print("ERROR: Couldn't find chosen card")
         }
     }
     

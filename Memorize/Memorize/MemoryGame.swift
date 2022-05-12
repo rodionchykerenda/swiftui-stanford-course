@@ -9,10 +9,13 @@ import Foundation
 
 struct MemoryGame<CardContent: Equatable> {
     private(set) var cards: [Card]
-    private var indexOfFacedUpCard: Int?
+    private var indexOfTheOnlyFacedUpCard: Int? {
+        get { cards.indices.filter { cards[$0].isFaceUp }.oneAndOnly }
+        set { cards.indices.forEach { cards[$0].isFaceUp = ($0 == newValue) } }
+    }
     
     init(numberOfPairsOfCards: Int, createCardContent: (Int) -> CardContent) {
-        cards = [Card]()
+        cards = []
         
         for pairIndex in 0..<numberOfPairsOfCards {
             let content = createCardContent(pairIndex)
@@ -22,23 +25,18 @@ struct MemoryGame<CardContent: Equatable> {
     }
     
     mutating func choose(_ card: Card) {
-            if let chosenIndex = cards.firstIndex(where: { $0.id == card.id }),
-                !cards[chosenIndex].isFaceUp {
-            if let potentialMatchCardIndex = indexOfFacedUpCard {
+        if let chosenIndex = cards.firstIndex(where: { $0.id == card.id }),
+           !cards[chosenIndex].isFaceUp,
+           !cards[chosenIndex].isMatched {
+            if let potentialMatchCardIndex = indexOfTheOnlyFacedUpCard {
                 if cards[chosenIndex].content == cards[potentialMatchCardIndex].content {
                     cards[chosenIndex].isMatched = true
                     cards[potentialMatchCardIndex].isMatched = true
                 }
-                
-                indexOfFacedUpCard = nil
+                cards[chosenIndex].isFaceUp = true
             } else {
-                for index in cards.indices {
-                    cards[index].isFaceUp = false
-                }
+                indexOfTheOnlyFacedUpCard = chosenIndex
             }
-            cards[chosenIndex].isFaceUp.toggle()
-        } else {
-            print("ERROR: Couldn't find chosen card")
         }
     }
     
@@ -54,8 +52,14 @@ struct MemoryGame<CardContent: Equatable> {
     
     struct Card: Identifiable {
         var id = UUID()
-        var isFaceUp: Bool = false
-        var isMatched: Bool = false
+        var isFaceUp = false
+        var isMatched = false
         var content: CardContent
+    }
+}
+
+extension Array {
+    var oneAndOnly: Element? {
+        count == 1 ? first : nil
     }
 }
